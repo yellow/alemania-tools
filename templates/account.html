@@ -1,12 +1,15 @@
-<!doctype html>
-<head>
-    <title>My Account</title>
-</head>
-<body>
-    <h1>My Account</h1>
-    <h2>Login</h2>
+{% extends "base.html" %}
+{% set active_page = "account" %}
 
+{% block title %}
+<title>My Account - Alemania Tools</title>
+{% endblock title %}
 
-    <h2>Register</h2>
-</body>
-<html>
+{% block content %}
+<h1>Alemania Tools</h1>
+<h2>My Account</h2>
+
+<h5>Login</h5>
+
+<h5>Register</h5>
+{% endblock content %}
