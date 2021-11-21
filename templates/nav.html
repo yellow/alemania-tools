@@ -5,10 +5,15 @@
   </button>
   <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
     <div class="navbar-nav">
-      <a class="nav-item nav-link active" href="{{ url_for('home') }}">Home<span class="sr-only">(current)</span></a>
-      <a class="nav-item nav-link" href="#">Tool Selection</a>
-      <a class="nav-item nav-link" href="{{ url_for('account') }}">My Account</a>
-      <a class="nav-item nav-link" href="#">Cart</a>
+      {% set navigation_bar = [
+      ('home', 'Home'),
+      ('account', 'My Account')
+      ] %}
+      {% set active_page = active_page|default('home') %}
+
+      {% for route, title in navigation_bar %}
+      <a class="nav-item nav-link{% if route == active_page %} active{% endif %}" href="{{ url_for(route) }}">{{ title }}</a>
+      {% endfor %}
     </div>
   </div>
 </nav>
