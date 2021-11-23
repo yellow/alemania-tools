@@ -11,5 +11,13 @@ def home():
 def account():
     return render_template('account.html')
 
+@app.route('/tool-selection')
+def tool_selection():
+    return render_template('tool-selection.html')
+
+@app.route('/cart')
+def cart():
+    return render_template('cart.html')
+
 if __name__ == '__main__':
     app.run()
