@@ -7,16 +7,15 @@
     <div class="navbar-nav">
       {% set navigation_bar = [
       ('home', 'Home'),
-      ('account', 'My Account'),
       ('tool_selection', 'Tool Selection'),
       ('login', 'Login'),
       ('register', 'Register'),
       ('cart', 'Cart')
       ] %}
-      {% set active_page = active_page|default('home') %}
+      {% set active_page = request.endpoint|default('home') %}
 
-      {% for route, title in navigation_bar %}
-      <a class="nav-item nav-link{% if route == active_page %} active{% endif %}" href="{{ url_for(route) }}">{{ title }}</a>
+      {% for func_name, title in navigation_bar %}
+      <a class="nav-item nav-link{% if func_name == active_page %} active{% endif %}" href="{{ url_for(func_name) }}">{{ title }}</a>
       {% endfor %}
     </div>
   </div>
