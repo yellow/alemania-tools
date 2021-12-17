@@ -5,13 +5,6 @@
   </button>
   <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
     <div class="navbar-nav">
-      {% set navigation_bar = [
-      ('home', 'Home'),
-      ('tool_selection', 'Tool Selection'),
-      ('login', 'Login'),
-      ('register', 'Register'),
-      ('cart', 'Cart')
-      ] %}
       {% set active_page = request.endpoint|default('home') %}
 
       <a class="nav-item nav-link{% if active_page == 'home'%} active{% endif %}" href="{{ url_for('home') }}">Home</a>
