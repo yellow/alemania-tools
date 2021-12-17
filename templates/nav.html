@@ -14,9 +14,16 @@
       ] %}
       {% set active_page = request.endpoint|default('home') %}
 
-      {% for func_name, title in navigation_bar %}
-      <a class="nav-item nav-link{% if func_name == active_page %} active{% endif %}" href="{{ url_for(func_name) }}">{{ title }}</a>
-      {% endfor %}
+      <a class="nav-item nav-link{% if active_page == 'home'%} active{% endif %}" href="{{ url_for('home') }}">Home</a>
+      <a class="nav-item nav-link{% if active_page == 'tool_selection'%} active{% endif %}" href="{{ url_for('tool_selection') }}">Tool Selection</a>
+      {% if current_user.is_authenticated %}
+      <a class="nav-item nav-link{% if active_page == 'logout'%} active{% endif %}" href="{{ url_for('logout') }}">Logout</a>
+      {% else %}
+      <a class="nav-item nav-link{% if active_page == 'login'%} active{% endif %}" href="{{ url_for('login') }}">Login</a>
+      <a class="nav-item nav-link{% if active_page == 'register'%} active{% endif %}" href="{{ url_for('register') }}">Register</a>
+      {% endif %}
+      <a class="nav-item nav-link{% if active_page == 'cart'%} active{% endif %}" href="{{ url_for('cart') }}">Cart</a>
+
     </div>
   </div>
 </nav>
