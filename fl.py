@@ -122,9 +122,5 @@ def logout():
 def tool_selection():
     return render_template('tool-selection.html', title = 'Tool Selection')
 
-@app.route('/cart')
-def cart():
-    return render_template('cart.html', title = 'My Cart')
-
 if __name__ == '__main__':
     app.run()
