@@ -11,7 +11,7 @@
 	  <a class="nav-item nav-link{% if active_page == 'tool_selection'%} active{% endif %}" href="{{ url_for('tool_selection') }}">Tool Selection</a>
 
 	</div>
-	<div class="navbar-nav">
+	<div class="navbar-nav mr-4">
 	  {% if current_user.is_authenticated %}
 	  <a class="nav-item nav-link{% if active_page == 'logout'%} active{% endif %}" href="{{ url_for('logout') }}">Logout</a>
 	  {% else %}
