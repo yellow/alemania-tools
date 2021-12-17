@@ -9,12 +9,12 @@ app.config['DEBUG'] = True
 # secret for form is in environment variable.
 app.config['SECRET_KEY'] = os.environ['FORM_CSRF_SECRET']
 
+@app.route('/home')
 @app.route('/')
 def home():
     print("Path:", request.path)
     print("Endpoint:", request.endpoint)
     return render_template('home.html', title = 'Home')
-
 
 @app.route("/register", methods=['GET', 'POST'])
 def register():
