@@ -1,5 +1,5 @@
 from flask import Flask, render_template, url_for, redirect, flash, request, jsonify
-from forms import RegistrationForm, LoginForm
+from forms import RegistrationForm, LoginForm, ProductSearchForm
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin, LoginManager, login_user, current_user, logout_user, login_required
 from flask_bcrypt import Bcrypt
@@ -124,21 +124,17 @@ def logout():
 @app.route('/tool-selection')
 @login_required
 def tool_selection():
-    return render_template('tool-selection.html', title = 'Tool Selection')
+    form = ProductSearchForm()
+    return render_template('tool-selection.html', title = 'Tool Selection', form = form)
 
 @app.route('/product-search', methods = ['POST'])
+@login_required
 def product_search():
-    product = request.form.get('product')
-
-    if not product.strip():
-        result = {'status': 'failure'}
-        return jsonify(result)
-
-    result = {'status': 'success', 'data': []}
-    for prod in Product.query.filter(Product.name.like(f'%{ product }%')).all():
-        result['data'].append({'id': prod.id, 'name': prod.name, 'description': prod.description})
-
-    return jsonify(result)
+    form = ProductSearchForm(request.form)
+    if form.validate_on_submit():
+        print("Searching", form.product.data)
+        results = Product.query.filter(Product.name.like(f'%{ form.product.data }%')).all()
+    return render_template('product_search.html', results = results)
 
 if __name__ == '__main__':
     app.run()
