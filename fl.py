@@ -132,9 +132,8 @@ def tool_selection():
 def product_search():
     form = ProductSearchForm(request.form)
     if form.validate_on_submit():
-        print("Searching", form.product.data)
         results = Product.query.filter(Product.name.like(f'%{ form.product.data }%')).all()
-    return render_template('product_search.html', results = results)
+    return render_template('product_search.html', results = results, product = form.product.data)
 
 if __name__ == '__main__':
     app.run()
