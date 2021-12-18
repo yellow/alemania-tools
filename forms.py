@@ -24,3 +24,7 @@ class LoginForm(FlaskForm):
     password = PasswordField('Password', validators=[DataRequired()])
     remember = BooleanField('Remember Me')
     submit = SubmitField('Login')
+
+class ProductSearchForm(FlaskForm):
+    product = StringField('Product', validators=[DataRequired(), Length(min=2, max=20)])
+    search = SubmitField('Search')
