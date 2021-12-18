@@ -2,42 +2,61 @@
 
 {% block content %}
 
-<div class="search-container">
-    <input type="text" id="form_product" placeholder="Product Name" name="search">
-    <button id="fetchBtn" onclick="searchProduct()">Submit</button>
+<div class="input-group mb-3">
+    <form>
+	{{ form.hidden_tag() }}
+	<fieldset class="form-group">
+	    <legend class="border-bottom mb-4">Tool Selection</legend>
+	    <div class="form-group">
+		{{ form.product.label(class="form-control-label") }}
+		{% if form.product.errors %}
+		{{ form.product(class="form-control form-control-lg is-invalid") }}
+		<div class="invalid-feedback">
+		    {% for error in form.product.errors %}
+		    <span>{{ error }}</span>
+		    {% endfor %}
+		</div>
+		{% else %}
+		{{ form.product(class="form-control form-control-lg") }}
+		{% endif %}
+	    </div>
+	</fieldset>
+	<div class="form-group">
+	    {{ form.search(class="btn btn-outline-info") }}
+	</div>
+    </form>
 </div>
 
-<ul id="list">
-</ul>
-
-<script>
-
-    function searchProduct() {
-	    const product_name = document.getElementById('form_product').value
-
-	    var http = new XMLHttpRequest();
-
-	    http.onreadystatechange = function () {
-		    if (this.readyState == 4) {
-			    obj = JSON.parse(this.response);
-
-			    if(obj['status'] == 'failure') {
-				    alert('Search failed.')
-				    return
-				}
-			    let list = document.getElementById("list");
-			    str = ""
-			    for (row of obj['data']) {
-				    str += `<li>${row['id']}   -   ${row['name']}   -   ${row['description']}</li>`;
-				}
-			    list.innerHTML = str;
-			}
-		};
-	    http.open('POST', '{{ url_for('product_search') }}', true);
-	    http.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-
-	    http.send('product=' + product_name);
-	}
-
-</script>
+<div id="results">
+</div>
 {% endblock content %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function() {
+	    $('form').submit(function (e) {
+		    var url = "{{ url_for('product_search') }}"; // send the form data here.
+		    $.ajax({
+			    type: "POST",
+			    url: url,
+			    data: $('form').serialize(), // serializes the form's elements.
+			    success: function (data) {
+				   // console.log(data)  // display the returned data in the console.
+				    results_div = document.getElementById('results')
+				    results_div.innerHTML = data
+				}
+			});
+		    e.preventDefault(); // block the traditional submission of the form.
+		});
+
+	    // Inject our CSRF token into our AJAX request.
+	    $.ajaxSetup({
+		    beforeSend: function(xhr, settings) {
+			    if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) && !this.crossDomain) {
+				    xhr.setRequestHeader("X-CSRFToken", "{{ form.csrf_token._value() }}")
+				}
+			}
+		})
+	});
+</script>
+{% endblock scripts %}
