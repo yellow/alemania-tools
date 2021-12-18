@@ -1,4 +1,4 @@
-from flask import Flask, render_template, url_for, redirect, flash, request
+from flask import Flask, render_template, url_for, redirect, flash, request, jsonify
 from forms import RegistrationForm, LoginForm
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin, LoginManager, login_user, current_user, logout_user, login_required
@@ -71,6 +71,9 @@ class Product(db.Model):
 
     posts = db.relationship('Post', backref='product', lazy=True)
 
+    # repairable = db.Column(db.Boolean, nullable = False, default = True)
+    # repairable values --> True/False
+
 @app.route('/home')
 @app.route('/')
 def home():
@@ -116,9 +119,25 @@ def logout():
     logout_user()
     return redirect(url_for('home'))
 
+# login required***
 @app.route('/tool-selection')
+@login_required
 def tool_selection():
     return render_template('tool-selection.html', title = 'Tool Selection')
+
+@app.route('/product-search', methods = ['POST'])
+def product_search():
+    product = request.form.get('product')
+
+    if not product.strip():
+        result = {'status': 'failure'}
+        return jsonify(result)
+
+    result = {'status': 'success', 'data': []}
+    for prod in Product.query.filter(Product.name.like(f'%{ product }%')).all():
+        result['data'].append({'id': prod.id, 'name': prod.name, 'description': prod.description})
+
+    return jsonify(result)
 
 if __name__ == '__main__':
     app.run()
