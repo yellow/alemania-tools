@@ -1,0 +1,10 @@
+{% for res in results %}
+    <div class="card" style="width: 18rem;">
+        <img class="card-img-top" src="{{ url_for('static', filename = res.image_file) }}" alt="">
+        <div class="card-body">
+            <h5 class="card-title">{{ res.title }}</h5>
+            <p class="card-text">{{ res.description }}</p>
+            <a href="#" class="btn btn-primary">Repair Tool</a>
+        </div>
+    </div>
+{% endfor %}
