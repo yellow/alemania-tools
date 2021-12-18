@@ -1,6 +1,43 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1>Alemania Tools</h1>
-<h2>Tool Selection</h2>
+
+<div class="search-container">
+    <input type="text" id="form_product" placeholder="Product Name" name="search">
+    <button id="fetchBtn" onclick="searchProduct()">Submit</button>
+</div>
+
+<ul id="list">
+</ul>
+
+<script>
+
+    function searchProduct() {
+	    const product_name = document.getElementById('form_product').value
+
+	    var http = new XMLHttpRequest();
+
+	    http.onreadystatechange = function () {
+		    if (this.readyState == 4) {
+			    obj = JSON.parse(this.response);
+
+			    if(obj['status'] == 'failure') {
+				    alert('Search failed.')
+				    return
+				}
+			    let list = document.getElementById("list");
+			    str = ""
+			    for (row of obj['data']) {
+				    str += `<li>${row['id']}   -   ${row['name']}   -   ${row['description']}</li>`;
+				}
+			    list.innerHTML = str;
+			}
+		};
+	    http.open('POST', '{{ url_for('product_search') }}', true);
+	    http.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+
+	    http.send('product=' + product_name);
+	}
+
+</script>
 {% endblock content %}
