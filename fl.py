@@ -1,5 +1,5 @@
 from flask import Flask, render_template, url_for, redirect, flash, request, jsonify
-from forms import RegistrationForm, LoginForm, ProductSearchForm
+from forms import RegistrationForm, LoginForm, ProductSearchForm, PostForm
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin, LoginManager, login_user, current_user, logout_user, login_required
 from flask_bcrypt import Bcrypt
@@ -130,10 +130,23 @@ def tool_selection():
 @app.route('/product-search', methods = ['POST'])
 @login_required
 def product_search():
-    form = ProductSearchForm(request.form)
+    form = ProductSearchForm()
     if form.validate_on_submit():
         results = Product.query.filter(Product.name.like(f'%{ form.product.data }%')).all()
     return render_template('product_search.html', results = results, product = form.product.data)
+
+@app.route('/product/<int:product_id>')
+@login_required
+def product(product_id):
+    prod = Product.query.filter_by(id=product_id).first()
+    if not prod:
+        return 'Invalid id'
+
+    form = PostForm()
+    if form.validate_on_submit():
+        return 'added post'
+
+    return render_template('product.html', prod = prod, form = form)
 
 if __name__ == '__main__':
     app.run()
