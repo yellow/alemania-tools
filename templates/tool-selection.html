@@ -2,61 +2,134 @@
 
 {% block content %}
 
-<div class="input-group mb-3">
-    <form>
-	{{ form.hidden_tag() }}
-	<fieldset class="form-group">
-	    <legend class="border-bottom mb-4">Tool Selection</legend>
-	    <div class="form-group">
-		{{ form.product.label(class="form-control-label") }}
-		{% if form.product.errors %}
-		{{ form.product(class="form-control form-control-lg is-invalid") }}
-		<div class="invalid-feedback">
-		    {% for error in form.product.errors %}
-		    <span>{{ error }}</span>
-		    {% endfor %}
+<div class="container">
+    <div class="row">
+	<div class="col-sm-6">
+	    <form>
+		{{ form.hidden_tag() }}
+		<fieldset class="form-group">
+		    <legend class="border-bottom mb-4">Tool Selection</legend>
+		    <div class="form-group">
+			{{ form.product.label(class="form-control-label") }}
+			{% if form.product.errors %}
+			{{ form.product(class="form-control form-control-lg is-invalid") }}
+			<div class="invalid-feedback">
+			    {% for error in form.product.errors %}
+			    <span>{{ error }}</span>
+			    {% endfor %}
+			</div>
+			{% else %}
+			{{ form.product(class="form-control form-control-lg") }}
+			{% endif %}
+		    </div>
+		</fieldset>
+		<div class="form-group">
+		    {{ form.search(class="btn btn-outline-info") }}
 		</div>
-		{% else %}
-		{{ form.product(class="form-control form-control-lg") }}
-		{% endif %}
-	    </div>
-	</fieldset>
-	<div class="form-group">
-	    {{ form.search(class="btn btn-outline-info") }}
+	    </form>
 	</div>
-    </form>
-</div>
+	<div class="col-sm-6">
+	    <div>
+		<a class="button" id="startButton">Start</a>
+		<a class="button" id="resetButton">Reset</a>
+	    </div>
 
-<div id="results">
-</div>
-{% endblock content %}
+	    <div>
+		<video id="video" width="300" height="200" style="border: 1px solid gray"></video>
+	    </div>
 
-{% block scripts %}
-<script>
-    $(document).ready(function() {
-	    $('form').submit(function (e) {
-		    var url = "{{ url_for('product_search') }}"; // send the form data here.
-		    $.ajax({
-			    type: "POST",
-			    url: url,
-			    data: $('form').serialize(), // serializes the form's elements.
-			    success: function (data) {
-				   // console.log(data)  // display the returned data in the console.
-				    results_div = document.getElementById('results')
-				    results_div.innerHTML = data
-				}
-			});
-		    e.preventDefault(); // block the traditional submission of the form.
-		});
+	    <div id="sourceSelectPanel" style="display:none">
+		<label for="sourceSelect">Change video source:</label>
+		<select id="sourceSelect" style="max-width:400px">
+		</select>
+	    </div>
+	</div>
+    </div>
 
-	    // Inject our CSRF token into our AJAX request.
-	    $.ajaxSetup({
-		    beforeSend: function(xhr, settings) {
-			    if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) && !this.crossDomain) {
-				    xhr.setRequestHeader("X-CSRFToken", "{{ form.csrf_token._value() }}")
-				}
-			}
+    <div id="results">
+    </div>
+    {% endblock content %}
+
+    {% block scripts %}
+    <script type="text/javascript" src="https://unpkg.com/@zxing/library@latest/umd/index.min.js"></script>
+    <script type="text/javascript">
+	window.addEventListener('load', function () {
+		    let selectedDeviceId;
+		    const codeReader = new ZXing.BrowserMultiFormatReader()
+		    console.log('ZXing code reader initialized')
+		    codeReader.listVideoInputDevices()
+			.then((videoInputDevices) => {
+				    const sourceSelect = document.getElementById('sourceSelect')
+				    selectedDeviceId = videoInputDevices[0].deviceId
+				    if (videoInputDevices.length >= 1) {
+						videoInputDevices.forEach((element) => {
+							    const sourceOption = document.createElement('option')
+							    sourceOption.text = element.label
+							    sourceOption.value = element.deviceId
+							    sourceSelect.appendChild(sourceOption)
+							})
+
+						sourceSelect.onchange = () => {
+							    selectedDeviceId = sourceSelect.value;
+							};
+
+						const sourceSelectPanel = document.getElementById('sourceSelectPanel')
+						sourceSelectPanel.style.display = 'block'
+					    }
+
+				    document.getElementById('startButton').addEventListener('click', () => {
+						codeReader.decodeFromVideoDevice(selectedDeviceId, 'video', (result, err) => {
+							    if (result) {
+									console.log(result)
+									document.getElementById('product').value = result.text
+								    }
+							    if (err && !(err instanceof ZXing.NotFoundException)) {
+									console.error(err)
+									// document.getElementById('product').textContent = err
+								    }
+							})
+						console.log(`Started continous decode from camera with id ${selectedDeviceId}`)
+					    })
+
+				    document.getElementById('resetButton').addEventListener('click', () => {
+						codeReader.reset()
+						document.getElementById('product').value = '';
+						console.log('Reset.')
+					    })
+
+				})
+			.catch((err) => {
+				    console.error(err)
+				})
 		})
-	});
-</script>
-{% endblock scripts %}
+    </script>
+
+    <script>
+	$(document).ready(function() {
+		    $('form').submit(function (e) {
+				var url = "{{ url_for('product_search') }}"; // send the form data here.
+				$.ajax({
+					    type: "POST",
+					    url: url,
+					    data: $('form').serialize(), // serializes the form's elements.
+					    success: function (data) {
+							// console.log(data)  // display the returned data in the console.
+							results_div = document.getElementById('results')
+							results_div.innerHTML = data
+						    }
+					});
+				e.preventDefault(); // block the traditional submission of the form.
+			    });
+
+		    // Inject our CSRF token into our AJAX request.
+		    $.ajaxSetup({
+				beforeSend: function(xhr, settings) {
+					    if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) && !this.crossDomain) {
+							xhr.setRequestHeader("X-CSRFToken", "{{ form.csrf_token._value() }}")
+						    }
+					}
+			    })
+		});
+    </script>
+
+    {% endblock scripts %}
