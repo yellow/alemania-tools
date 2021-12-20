@@ -45,91 +45,19 @@
 	    </div>
 	</div>
     </div>
+</div>
 
-    <div id="results">
-    </div>
-    {% endblock content %}
+<div id="results">
+</div>
+{% endblock content %}
 
-    {% block scripts %}
-    <script type="text/javascript" src="https://unpkg.com/@zxing/library@latest/umd/index.min.js"></script>
-    <script type="text/javascript">
-	window.addEventListener('load', function () {
-		    let selectedDeviceId;
-		    const codeReader = new ZXing.BrowserMultiFormatReader()
-		    console.log('ZXing code reader initialized')
-		    codeReader.listVideoInputDevices()
-			.then((videoInputDevices) => {
-				    const sourceSelect = document.getElementById('sourceSelect')
-				    selectedDeviceId = videoInputDevices[0].deviceId
-				    if (videoInputDevices.length >= 1) {
-						videoInputDevices.forEach((element) => {
-							    const sourceOption = document.createElement('option')
-							    sourceOption.text = element.label
-							    sourceOption.value = element.deviceId
-							    sourceSelect.appendChild(sourceOption)
-							})
+{% block scripts %}
+<script type="text/javascript" src="https://unpkg.com/@zxing/library@latest/umd/index.min.js"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='js/barcode-scanner.js') }}"></script>
+<script>
+    let product_search_url = "{{ url_for('product_search') }}";
+    let csrf_token = "{{ form.csrf_token._value() }}";
+</script>
+<script type="text/javascript" src="{{ url_for('static', filename='js/product-search.js') }}"></script>
+{% endblock scripts %}
 
-						sourceSelect.onchange = () => {
-							    selectedDeviceId = sourceSelect.value;
-							};
-
-						const sourceSelectPanel = document.getElementById('sourceSelectPanel')
-						sourceSelectPanel.style.display = 'block'
-					    }
-
-				    document.getElementById('startButton').addEventListener('click', () => {
-						codeReader.decodeFromVideoDevice(selectedDeviceId, 'video', (result, err) => {
-							    if (result) {
-									console.log(result)
-									document.getElementById('product').value = result.text
-								    }
-							    if (err && !(err instanceof ZXing.NotFoundException)) {
-									console.error(err)
-									// document.getElementById('product').textContent = err
-								    }
-							})
-						console.log(`Started continous decode from camera with id ${selectedDeviceId}`)
-					    })
-
-				    document.getElementById('resetButton').addEventListener('click', () => {
-						codeReader.reset()
-						document.getElementById('product').value = '';
-						console.log('Reset.')
-					    })
-
-				})
-			.catch((err) => {
-				    console.error(err)
-				})
-		})
-    </script>
-
-    <script>
-	$(document).ready(function() {
-		    $('form').submit(function (e) {
-				var url = "{{ url_for('product_search') }}"; // send the form data here.
-				$.ajax({
-					    type: "POST",
-					    url: url,
-					    data: $('form').serialize(), // serializes the form's elements.
-					    success: function (data) {
-							// console.log(data)  // display the returned data in the console.
-							results_div = document.getElementById('results')
-							results_div.innerHTML = data
-						    }
-					});
-				e.preventDefault(); // block the traditional submission of the form.
-			    });
-
-		    // Inject our CSRF token into our AJAX request.
-		    $.ajaxSetup({
-				beforeSend: function(xhr, settings) {
-					    if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) && !this.crossDomain) {
-							xhr.setRequestHeader("X-CSRFToken", "{{ form.csrf_token._value() }}")
-						    }
-					}
-			    })
-		});
-    </script>
-
-    {% endblock scripts %}
