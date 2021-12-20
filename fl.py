@@ -135,7 +135,7 @@ def product_search():
         results = Product.query.filter(Product.name.like(f'%{ form.product.data }%')).all()
     return render_template('product_search.html', results = results, product = form.product.data)
 
-@app.route('/product/<int:product_id>')
+@app.route('/product/<int:product_id>', methods = ['GET', 'POST'])
 @login_required
 def product(product_id):
     prod = Product.query.filter_by(id=product_id).first()
