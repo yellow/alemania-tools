@@ -134,7 +134,6 @@ def logout():
         logout_user()
     return redirect(url_for('home'))
 
-# login required***
 @app.route('/tool-selection')
 @login_required
 def tool_selection():
@@ -155,6 +154,9 @@ def product(product_id):
     prod = Product.query.filter_by(id=product_id).first()
     if not prod:
         return 'Invalid id'
+
+    if not prod.repairable:
+        return 'product is unrepairable'
 
     form = PostForm(quantity = 1)
     if form.validate_on_submit():
