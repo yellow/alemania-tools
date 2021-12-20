@@ -2,7 +2,7 @@
 # the above repository is MIT Licensed so no worries.
 
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, BooleanField
+from wtforms import StringField, PasswordField, SubmitField, BooleanField, DateField
 from wtforms.validators import DataRequired, Length, Email, EqualTo
 
 class RegistrationForm(FlaskForm):
@@ -28,3 +28,13 @@ class LoginForm(FlaskForm):
 class ProductSearchForm(FlaskForm):
     product = StringField('Product', validators=[DataRequired(), Length(min=2, max=20)])
     search = SubmitField('Search')
+
+class PostForm(FlaskForm):
+    place = StringField('Place of Purchase', validators=[DataRequired(), Length(min=2, max=20)])
+    date = DateField('Date of Purchase', validators=[DataRequired()])
+    description = StringField('Description of Failure', validators=[DataRequired(), Length(min=5)])
+    tag = StringField('Customer Tool Reference/Tag')
+
+    tos = BooleanField('Do you accept the ToS?', validators=[DataRequired()])
+
+    submit = SubmitField('Submit')
