@@ -7,12 +7,21 @@ from flask_bcrypt import Bcrypt
 import os
 from datetime import datetime
 
+import stripe
+
 app = Flask(__name__)
 app.config['DEBUG'] = True
 
 # secret for form is in environment variable.
 app.config['SECRET_KEY'] = os.environ['FORM_CSRF_SECRET']
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['SQLALCHEMY_DB_URI']
+
+app.config['STRIPE_PUBLIC_KEY'] = os.environ['STRIPE_PUBLIC_KEY']
+app.config['STRIPE_SECRET_KEY'] = os.environ['STRIPE_SECRET_KEY']
+app.config['STRIPE_ENDPOINT_SECRET'] = os.environ['STRIPE_ENDPOINT_SECRET']
+
+stripe.api_key = app.config['STRIPE_SECRET_KEY']
+
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
 
@@ -52,6 +61,9 @@ class Post(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
 
+    payment_status = db.Column(db.String(15), nullable=False, default='PENDING')
+    stripe_session_id = db.Column(db.String(120), nullable=False)
+
     def __repr__(self):
         return f"Post('{self.id}', '{self.product.name}', '{self.date_posted}')"
 
@@ -71,8 +83,10 @@ class Product(db.Model):
 
     posts = db.relationship('Post', backref='product', lazy=True)
 
-    # repairable = db.Column(db.Boolean, nullable = False, default = True)
-    # repairable values --> True/False
+    repairable = db.Column(db.Boolean, nullable = False, default = True)
+
+    stripe_product_id = db.Column(db.String(25), nullable=False)
+    stripe_price_id = db.Column(db.String(35), nullable=False)
 
 @app.route('/home')
 @app.route('/')
@@ -144,9 +158,80 @@ def product(product_id):
 
     form = PostForm(quantity = 1)
     if form.validate_on_submit():
-        return 'added post'
+        # create stripe session. requires price id of product.
+        # redirect to stripe payment page
+        session = stripe.checkout.Session.create(
+                payment_method_types=['card'],
+                line_items=[{
+                    'price': prod.stripe_price_id,
+                    'quantity': form.quantity.data,
+                }],
+                mode='payment',
+                # is this needed?
+                # customer_email=current_user.email,
+                success_url=url_for('thanks', _external=True),
+                cancel_url=url_for('tool_selection', _external=True, status = 'cancelled')
+            )
+        new_post = Post(purchase_place=form.place.data,
+                purchase_date=form.date.data,
+                failure_description=form.description.data,
+                tag=form.tag.data,
+                quantity=form.quantity.data,
+                user_id=current_user.id,
+                product_id=prod.id,
+                payment_status='PENDING',
+                stripe_session_id=session.id
+                )
+        db.session.add(new_post)
+        db.session.commit()
+        return redirect(session.url)
 
     return render_template('product.html', prod = prod, form = form, title = prod.name)
+
+@app.route('/thanks')
+@login_required
+def thanks():
+    return render_template('thanks.html')
+
+# reference:
+# https://github.com/PrettyPrinted/youtube_video_code/blob/master/2020/06/12/Accepting%20Payments%20in%20Flask%20Using%20Stripe%20Checkout%20%5B2020%5D/flask_stripe/app.py
+
+@app.route('/stripe-webhook', methods=['POST'])
+def stripe_webhook():
+    print('WEBHOOK CALLED')
+
+    if request.content_length > 1024 * 1024:
+        print('REQUEST TOO BIG')
+        abort(400)
+    payload = request.get_data()
+    sig_header = request.environ.get('HTTP_STRIPE_SIGNATURE')
+    endpoint_secret = app.config['STRIPE_ENDPOINT_SECRET']
+    event = None
+
+    try:
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, endpoint_secret
+        )
+    except ValueError as e:
+        # Invalid payload
+        print('INVALID PAYLOAD')
+        return {}, 400
+    except stripe.error.SignatureVerificationError as e:
+        # Invalid signature
+        print('INVALID SIGNATURE')
+        return {}, 400
+
+    # Handle the checkout.session.completed event
+    if event['type'] == 'checkout.session.completed':
+        session = event['data']['object']
+        completed_post = Post.query.filter_by(stripe_session_id=session['id']).first()
+        completed_post.payment_status = 'COMPLETE'
+        db.session.commit()
+        print(session)
+        line_items = stripe.checkout.Session.list_line_items(session['id'], limit=1)
+        print(line_items)
+
+    return {}
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', ssl_context='adhoc')
