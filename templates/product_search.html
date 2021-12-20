@@ -1,14 +1,18 @@
 {% if results %}
-{% for res in results %}
-    <div class="card" style="width: 10rem;">
-        <img class="card-img-top" src="{{ url_for('static', filename = 'images/' + res.image_file) }}" alt="">
-        <div class="card-body">
-            <h5 class="card-title">{{ res.name }}</h5>
-            <p class="card-text">{{ res.description[:20] }}{%if res.description|length > 20 %}...{% endif %}</p>
-            <a href="{{ url_for('product', product_id = res.id) }}" class="btn btn-primary">Repair Tool</a>
+<div class="row">
+    <div class="col-sm-6">
+        {% for res in results %}
+        <div class="card" style="width: 10rem;">
+            <img class="card-img-top" src="{{ url_for('static', filename = 'images/' + res.image_file) }}" alt="">
+            <div class="card-body">
+                <h5 class="card-title">{{ res.name }}</h5>
+                <p class="card-text">{{ res.description[:20] }}{%if res.description|length > 20 %}...{% endif %}</p>
+                <a href="{{ url_for('product', product_id = res.id) }}" class="btn btn-primary" {% if not res.repairable %}style="pointer-events: none; background-color: #6fa7e3;"{% endif %}>Repair Tool</a>
+            </div>
         </div>
     </div>
-{% endfor %}
+    {% endfor %}
+</div>
 {% else %}
 <h3>No results found for "{{ product }}"</h3>
 {% endif %}
