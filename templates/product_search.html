@@ -5,7 +5,7 @@
         <div class="card-body">
             <h5 class="card-title">{{ res.name }}</h5>
             <p class="card-text">{{ res.description[:20] }}{%if res.description|length > 20 %}...{% endif %}</p>
-            <a href="#" class="btn btn-primary">Repair Tool</a>
+            <a href="{{ url_for('product', product_id = res.id) }}" class="btn btn-primary">Repair Tool</a>
         </div>
     </div>
 {% endfor %}
