@@ -2,8 +2,8 @@
 # the above repository is MIT Licensed so no worries.
 
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, BooleanField, DateField
-from wtforms.validators import DataRequired, Length, Email, EqualTo
+from wtforms import StringField, PasswordField, SubmitField, BooleanField, DateField, IntegerField
+from wtforms.validators import DataRequired, Length, Email, EqualTo, NumberRange
 
 class RegistrationForm(FlaskForm):
     firstname = StringField('First Name',
@@ -34,6 +34,7 @@ class PostForm(FlaskForm):
     date = DateField('Date of Purchase', validators=[DataRequired()])
     description = StringField('Description of Failure', validators=[DataRequired(), Length(min=5)])
     tag = StringField('Customer Tool Reference/Tag')
+    quantity = IntegerField("Quantity", validators=[NumberRange(min = 1)])
 
     tos = BooleanField('Do you accept the ToS?', validators=[DataRequired()])
 
