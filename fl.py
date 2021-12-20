@@ -149,4 +149,4 @@ def product(product_id):
     return render_template('product.html', prod = prod, form = form, title = prod.name)
 
 if __name__ == '__main__':
-    app.run()
+    app.run(host='0.0.0.0', ssl_context='adhoc')
