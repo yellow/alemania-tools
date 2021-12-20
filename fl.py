@@ -142,11 +142,11 @@ def product(product_id):
     if not prod:
         return 'Invalid id'
 
-    form = PostForm()
+    form = PostForm(quantity = 1)
     if form.validate_on_submit():
         return 'added post'
 
-    return render_template('product.html', prod = prod, form = form)
+    return render_template('product.html', prod = prod, form = form, title = prod.name)
 
 if __name__ == '__main__':
     app.run()
